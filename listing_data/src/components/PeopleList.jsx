@@ -1,27 +1,54 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const PeopleList = () => {
-  const [people, setPeople] = useState([]);
+const [people, setPeople] = useState([]);
 
-  const fetchPeople = async () => {
+const fetchPeople = async () => {
     const res = await fetch("http://localhost:5000/api/people");
     const data = await res.json();
     setPeople(data);
-  };
+};
 
-  useEffect(() => {
+useEffect(() => {
     fetchPeople();
-  }, []);
+}, []);
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this person?")) {
-      await fetch(`http://localhost:5000/api/people/${id}`, {
-        method: "DELETE",
-      });
-      fetchPeople(); //refresh list
+const handleDelete = async (id) => {
+    const confirm = await Swal.fire({
+    title: "Are you sure?",
+    text: "You won't be able to revert this!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#dc3545",
+    cancelButtonColor: "#6c757d",
+    confirmButtonText: "Yes, delete it!"
+    });
+
+    if (confirm.isConfirmed) {
+    const res = await fetch(`http://localhost:5000/api/people/${id}`, {
+        method: "DELETE"
+    });
+
+    if (res.ok) {
+        Swal.fire({
+        title: "Deleted Successfully!",
+        icon: "success",
+        confirmButtonColor: "#28a745",
+        timer: 2000
+        });
+        fetchPeople();
+    } else {
+        Swal.fire({
+        title: "Error!",
+        text: "Could not delete person.",
+        icon: "error",
+        confirmButtonColor: "#dc3545"
+        });
     }
-  };
+    }
+};
 
   return (
     <div class="center-div">

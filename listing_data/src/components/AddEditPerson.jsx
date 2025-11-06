@@ -1,60 +1,61 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const AddEditPerson = () => {
-  const [formData, setFormData] = useState({
+const [formData, setFormData] = useState({
     name: "",
     age: "",
-    nationality: "",
-  });
-  const navigate = useNavigate();
-  const { id } = useParams();
+    nationality: ""
+});
+const navigate = useNavigate();
+const { id } = useParams();
 
-  // Fetch data for edit mode
-  useEffect(() => {
+// Fetch data for edit mode
+useEffect(() => {
     if (id) {
-      fetch(`http://localhost:5000/api/people/${id}`)
-        .then((res) => {
-          if (!res.ok) throw new Error("Failed to fetch person");
-          return res.json();
-        })
-        .then((data) => {
-          setFormData({
-            name: data.name || "",
-            age: data.age || "",
-            nationality: data.nationality || "",
-          });
-        })
+    fetch(`http://localhost:5000/api/people/${id}`)
+        .then((res) => res.json())
+        .then((data) => setFormData(data))
         .catch((err) => console.error("Error fetching person:", err));
     }
-  }, [id]);
+}, [id]);
 
-  const handleChange = (e) => {
+const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+};
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
 
     const method = id ? "PUT" : "POST";
     const url = id
-      ? `http://localhost:5000/api/people/${id}`
-      : "http://localhost:5000/api/people";
+    ? `http://localhost:5000/api/people/${id}`
+    : "http://localhost:5000/api/people";
 
-    try {
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+    const response = await fetch(url, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(formData)
+    });
 
-      if (!res.ok) throw new Error("Failed to save data");
-      navigate("/");
-    } catch (err) {
-      console.error(err);
-      alert("Error saving data!");
+    if (response.ok) {
+    Swal.fire({
+        title: id ? "Updated Successfully!" : "Added Successfully!",
+        icon: "success",
+        confirmButtonColor: "#28a745",
+        timer: 2000
+    });
+    navigate("/");
+    } else {
+    Swal.fire({
+        title: "Error!",
+        text: "Something went wrong. Please try again.",
+        icon: "error",
+        confirmButtonColor: "#dc3545"
+    });
     }
-  };
+};
 
   return (
     <div className="form-container">
